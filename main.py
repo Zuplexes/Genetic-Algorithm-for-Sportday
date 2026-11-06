@@ -4,6 +4,7 @@ import random
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 import numpy as np
 import pandas as pd
 import yaml
@@ -106,25 +107,39 @@ def save_outputs(d, best, history, out):
     summary.to_csv(out / "fairness_summary.csv")
 
     order = ["Red", "Green"]
-    fig, ax = plt.subplots(2, 2, figsize=(15, 10))
-    pd.crosstab(d["gender"], d["team"])[order].plot.bar(ax=ax[0, 0], color=COLORS, rot=0, title="Gender balance", ylabel="People")
-    m = g[["age", "weight", "height", "bmi"]].mean().T[order]
-    m.index = ["Age", "Weight", "Height", "BMI"]
-    m.plot.bar(ax=ax[0, 1], color=COLORS, rot=0, title="Physical Fairness Averages", ylabel="Mean Value")
-    pd.crosstab(d["department"], d["team"])[order].plot.bar(ax=ax[1, 0], stacked=True, color=COLORS, rot=45, title="Department distribution", ylabel="People")
-    ax[1, 1].plot(range(1, len(history) + 1), history, color="#264653")
-    ax[1, 1].set(title="GA convergence (lower is better)", xlabel="Generation", ylabel="Best penalty", yscale="log")
+    fig = plt.figure(figsize=(20, 11))
+    gs = fig.add_gridspec(2, 2, width_ratios=[1.8, 1], hspace=0.35, wspace=0.2)
+    ax_gender, ax_dept, ax_conv = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])
 
-    for c in ax[0, 0].containers:
-        ax[0, 0].bar_label(c, fmt="%d", padding=2)
-    for c in ax[0, 1].containers:
-        ax[0, 1].bar_label(c, fmt="%.2f", padding=2)
-    for c in ax[1, 0].containers:  # stacked: ซ่อนเลข 0
-        ax[1, 0].bar_label(c, labels=[f"{v:.0f}" if v else "" for v in c.datavalues], label_type="center")
-    for x, y in ((1, history[0]), (len(history), history[-1])):  # ค่าเริ่มต้นและค่าสุดท้ายของเส้น
-        ax[1, 1].annotate(f"{y:.2f}", (x, y), textcoords="offset points", xytext=(0, 8), ha="center")
-    fig.tight_layout()
-    fig.savefig(out / "fairness_charts.png", dpi=160)
+    pd.crosstab(d["gender"], d["team"])[order].plot.bar(ax=ax_gender, color=COLORS, rot=0, title="Gender balance", ylabel="People")
+    pd.crosstab(d["department"], d["team"])[order].plot.bar(ax=ax_dept, color=COLORS, rot=0, width=0.8, title="Department distribution", ylabel="People")
+    for a, size in ((ax_gender, 11), (ax_dept, 8)):
+        a.margins(y=0.12)  # เว้นที่ให้ตัวเลขเหนือแท่ง
+        for c in a.containers:
+            a.bar_label(c, fmt="%d", padding=2, fontsize=size)
+
+    # ค่าเฉลี่ยร่างกาย: 1 ช่องย่อยต่อตัวแปร (สเกลต่างกันมาก วางรวมกันแล้วเลขทับ)
+    m = g[["age", "weight", "height", "bmi"]].mean().T[order]
+    mini = gs[0, 1].subgridspec(1, 4, wspace=0.7)
+    for i, (name, row) in enumerate(zip(["Age", "Weight", "Height", "BMI"], m.to_numpy())):
+        a = fig.add_subplot(mini[i])
+        a.bar(order, row, color=COLORS)
+        a.bar_label(a.containers[0], fmt="%.2f", padding=3, fontsize=9, rotation=90)  # แนวตั้ง กันเลขชนกัน
+        a.set(title=f"Mean {name}", ylim=(0, row.max() * 1.3))
+        a.tick_params(axis="x", labelsize=8)
+        if i == 0:
+            a.set_ylabel("Mean Value")
+
+    ax_conv.plot(range(1, len(history) + 1), history, color="#264653")
+    ax_conv.set(title="GA convergence (lower is better)", xlabel="Generation", ylabel="Best penalty", yscale="log")
+    ax_conv.minorticks_off()
+    ax_conv.set_yticks(np.geomspace(min(history), max(history), 5))  # 5 ขีดพอ แทนเลขเบียดกัน
+    ax_conv.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:.2f}"))
+    ax_conv.margins(x=0.08, y=0.15)
+    for (x, y), dx, dy, ha in (((1, history[0]), 8, 10, "left"), ((len(history), history[-1]), 0, -18, "right")):
+        ax_conv.annotate(f"{y:.2f}", (x, y), textcoords="offset points", xytext=(dx, dy), ha=ha, fontsize=10)
+
+    fig.savefig(out / "fairness_charts.png", dpi=160, bbox_inches="tight")
     plt.close(fig)
 
 
