@@ -113,6 +113,15 @@ def save_outputs(d, best, history, out):
     pd.crosstab(d["department"], d["team"])[order].plot.bar(ax=ax[1, 0], stacked=True, color=COLORS, rot=45, title="Department distribution", ylabel="People")
     ax[1, 1].plot(range(1, len(history) + 1), history, color="#264653")
     ax[1, 1].set(title="GA convergence (lower is better)", xlabel="Generation", ylabel="Best penalty", yscale="log")
+
+    for c in ax[0, 0].containers:
+        ax[0, 0].bar_label(c, fmt="%d", padding=2)
+    for c in ax[0, 1].containers:
+        ax[0, 1].bar_label(c, fmt="%.2f", padding=2)
+    for c in ax[1, 0].containers:  # stacked: ซ่อนเลข 0
+        ax[1, 0].bar_label(c, labels=[f"{v:.0f}" if v else "" for v in c.datavalues], label_type="center")
+    for x, y in ((1, history[0]), (len(history), history[-1])):  # ค่าเริ่มต้นและค่าสุดท้ายของเส้น
+        ax[1, 1].annotate(f"{y:.2f}", (x, y), textcoords="offset points", xytext=(0, 8), ha="center")
     fig.tight_layout()
     fig.savefig(out / "fairness_charts.png", dpi=160)
     plt.close(fig)
