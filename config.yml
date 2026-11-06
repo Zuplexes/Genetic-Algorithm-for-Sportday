@@ -1,5 +1,5 @@
 csv_path: HR.csv
-output_dir: ga_output
+output_dir: ga_output_dept_weight
 
 seed: 42
 population_size: 200
