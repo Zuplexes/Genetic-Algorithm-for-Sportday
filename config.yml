@@ -1,0 +1,9 @@
+csv_path: HR.csv
+output_dir: ga_output
+
+seed: 42
+population_size: 200
+generations: 300
+elite_size: 5
+tournament_size: 3
+mutation_rate: 0.3
