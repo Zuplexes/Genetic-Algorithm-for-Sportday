@@ -12,7 +12,6 @@ num_cols = df[['weight', 'height', 'age']].apply(lambda x: (x - x.mean()) / x.st
 gender_col = (df['gender'] == 'Male').values[:, None].astype(float)
 dept_cols = pd.get_dummies(df['department'], dtype=float).values
 
-
 # 2. Fitness Function (วัดความเท่าเทียม + กระจายทุกแผนก 50:50)
 def get_fitness(pop):
     sign = pop * 2 - 1  # แปลง 0, 1 เป็น -1 (Team Red) และ +1 (Team Blue)
@@ -20,7 +19,6 @@ def get_fitness(pop):
     phys_err = np.abs(sign @ num_cols).mean(axis=1) / (N / 2)
     dept_err = (np.abs(sign @ dept_cols) - (dept_cols.sum(0) % 2)).sum(axis=1) / N
     return 100 / (1 + 10 * (2 * gender_err + phys_err + 5 * dept_err))
-
 
 # 3. Genetic Algorithm (Regeneration Loop)
 np.random.seed(42)
@@ -55,17 +53,32 @@ df['team'] = np.where(best_chrom == 0, 'Team Red', 'Team Blue')
 df.to_csv('HR_sports_day_teams.csv', index=False)
 
 print(f"Fitness Score: Gen 0 = {history[0]:.2f} -> Gen 80 = {history[-1]:.2f}\n")
-print("=== Mean & SD of Physical Attributes ===\n",
+print("=== Mean & SD of Physical Attributes (น้ำหนัก, ส่วนสูง, อายุ) ===\n",
       df.groupby('team')[['weight', 'height', 'age']].agg(['mean', 'std']).round(2))
-print("\n=== Gender Distribution ===\n", pd.crosstab(df['team'], df['gender']))
-print("\n=== Department Distribution ===\n", pd.crosstab(df['department'], df['team']).T)
+print("\n=== Gender Distribution (สัดส่วนเพศ) ===\n", pd.crosstab(df['team'], df['gender']))
+print("\n=== Department Distribution (สัดส่วนแผนก) ===\n", pd.crosstab(df['department'], df['team']).T)
 
-# 5. พล็อตกราฟแสดงผลลัพธ์
-fig, ax = plt.subplots(1, 2, figsize=(12, 4))
-ax[0].plot(history, lw=2.5, color='#e74c3c');
-ax[0].set_title('1. GA Fitness Convergence');
+# 5. พล็อตกราฟแสดงผลลัพธ์ (3 กราฟ: Fitness, แผนก, และ น้ำหนัก/ส่วนสูง/อายุ)
+fig, ax = plt.subplots(1, 3, figsize=(16, 4.5))
+
+# กราฟที่ 1: ค่า Fitness
+ax[0].plot(history, lw=2.5, color='#e74c3c')
+ax[0].set_title('1. GA Fitness Convergence')
 ax[0].set_xlabel('Generation')
-pd.crosstab(df['department'], df['team']).plot(kind='bar', ax=ax[1], title='2. Department Split (50:50)',
-                                               color=['#3498db', '#e74c3c'])
-plt.tight_layout();
+ax[0].set_ylabel('Fitness Score')
+
+# กราฟที่ 2: การกระจายคนตามแผนก
+pd.crosstab(df['department'], df['team']).plot(
+    kind='bar', ax=ax[1], title='2. Department Split (50:50)', color=['#3498db', '#e74c3c']
+)
+ax[1].set_ylabel('Number of Employees')
+
+# กราฟที่ 3: เปรียบเทียบค่าเฉลี่ย น้ำหนัก ส่วนสูง อายุ
+phys_means = df.groupby('team')[['weight', 'height', 'age']].mean().T
+phys_means.plot(
+    kind='bar', ax=ax[2], title='3. Mean Weight, Height & Age', color=['#3498db', '#e74c3c'], rot=0
+)
+ax[2].set_ylabel('Average Value')
+
+plt.tight_layout()
 plt.show()
