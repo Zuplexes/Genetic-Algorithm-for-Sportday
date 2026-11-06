@@ -7,3 +7,5 @@ generations: 300
 elite_size: 5
 tournament_size: 3
 mutation_rate: 0.3
+
+dept_weight: 5   # น้ำหนักความสมดุลแผนก (0 = ปิด)

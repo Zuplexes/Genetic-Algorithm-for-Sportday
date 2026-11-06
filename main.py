@@ -52,7 +52,8 @@ def run_ga(d, c):
         split = (((red_dept == 0) | (red_dept == dept_n)) & (dept_n >= 2)).sum(1)  # แผนกกระจุกสีเดียว
         need = max(len(names) - 1, 1)
         div = np.maximum(0, need - (red_dept > 0).sum(1)) + np.maximum(0, need - ((dept_n - red_dept) > 0).sum(1))
-        return 3 * gap.sum(1) + 2 * mix + 10000 * split + 10 * div
+        dept_gap = np.abs(2 * red_dept - dept_n).sum(1) / n  # ความต่างแดง-เขียวรวมทุกแผนก
+        return 3 * gap.sum(1) + 2 * mix + c["dept_weight"] * dept_gap + 10000 * split + 10 * div
 
     def make():
         x = np.zeros(n, bool)
