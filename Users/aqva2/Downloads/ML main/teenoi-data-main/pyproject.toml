@@ -1,0 +1,20 @@
+# วิธี build package (pip install -e . อ่านส่วนนี้)
+[build-system]
+requires = ["setuptools>=64"]  # ต้องใช้ setuptools 64 ขึ้นไป (รองรับ editable install แบบใหม่)
+build-backend = "setuptools.build_meta"  # ให้ setuptools เป็นตัว build
+
+# ข้อมูลของ package
+[project]
+name = "teenoi-data"  # ชื่อ package ตอน pip install (import ด้วย teenoi_data)
+description = "ดึงรีวิวสุกี้ตี๋น้อยจาก Google Maps และ clean ข้อความ"  # คำอธิบายสั้น
+dynamic = ["version"]  # เวอร์ชันไม่เขียนที่นี่ ให้อ่านจากโค้ด (ดู [tool.setuptools.dynamic])
+requires-python = ">=3.10"  # Python ขั้นต่ำ
+dependencies = ["playwright", "pandas", "pyyaml", "pythainlp"]  # คุม browser, ตาราง, อ่าน YAML, normalize ภาษาไทย
+
+# ค่าที่คำนวณตอน build
+[tool.setuptools.dynamic]
+version = {attr = "teenoi_data.__version__"}  # อ่านเวอร์ชันจาก src/teenoi_data/__init__.py
+
+# หา package ในโฟลเดอร์ src/ (src layout)
+[tool.setuptools.packages.find]
+where = ["src"]  # จะเจอ src/teenoi_data

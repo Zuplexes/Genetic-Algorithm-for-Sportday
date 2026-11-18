@@ -1,0 +1,42 @@
+<!-- Labeling Interface ของ Label Studio: วางทั้งไฟล์ใน Settings -> Labeling Interface -> Code -->
+<!-- View นอกสุด = กรอบของหน้าจอ label ทั้งหมด -->
+<View>
+  <!-- แสดงข้อความรีวิว: name="review" ให้ส่วนอื่นอ้างถึง, value="$review" ดึงจากคอลัมน์ review ใน CSV -->
+  <Text name="review" value="$review"/>
+
+  <!-- ขั้นตอนที่ 1: เลือกหมวดหมู่เพื่อไปไฮไลท์คำ (margin-top เว้นระยะจากข้อความด้านบน) -->
+  <View style="margin-top: 20px;">
+    <!-- หัวข้อคำแนะนำที่แสดงให้คน label เห็น -->
+    <Header value="1. เลือกหมวดหมู่ แล้วลากคลุมคำในประโยค"/>
+    <!-- ชุด label แบบไฮไลท์ช่วงข้อความ (span): ผลอยู่ใน key "aspect", ใช้กับ Text ชื่อ review -->
+    <Labels name="aspect" toName="review">
+      <!-- หมวดอาหาร (สีส้มแดง) -->
+      <Label value="อาหาร (Food)" background="#ff7043"/>
+      <!-- หมวดบริการ (สีฟ้า) -->
+      <Label value="บริการ (Service)" background="#42a5f5"/>
+      <!-- หมวดบรรยากาศ (สีเขียว) -->
+      <Label value="บรรยากาศ (Environment)" background="#66bb6a"/>
+      <!-- หมวดเวลาในการรอ (สีส้ม) -->
+      <Label value="เวลาในการรอ (Waiting Time)" background="#ffa726"/>
+      <!-- หมวดความสะอาด (สีฟ้าอมเขียว) -->
+      <Label value="ความสะอาด (Cleanliness)" background="#26c6da"/>
+    </Labels>
+  </View>
+
+  <!-- ขั้นตอนที่ 2: ระบุความรู้สึกของแต่ละช่วงที่ไฮไลท์ -->
+  <View style="margin-top: 20px;">
+    <!-- หัวข้อคำแนะนำ -->
+    <Header value="2. คลิกที่คำที่ไฮไลท์ไว้ แล้วระบุความรู้สึก"/>
+    <!-- perRegion="true" = ตอบแยกต่อช่วงไฮไลท์ (ไม่ใช่ทั้งรีวิว), choice="single" = เลือกได้ข้อเดียว,
+         required="true" = ต้องตอบก่อนกด Submit, showInline="true" = แสดงตัวเลือกเรียงในแถวเดียว -->
+    <Choices name="sentiment" toName="review" perRegion="true"
+             choice="single" required="true" showInline="true">
+      <!-- ความรู้สึกด้านบวก -->
+      <Choice value="ดี (Positive)"/>
+      <!-- ความรู้สึกกลาง ๆ -->
+      <Choice value="เฉยๆ (Neutral)"/>
+      <!-- ความรู้สึกด้านลบ -->
+      <Choice value="แย่ (Negative)"/>
+    </Choices>
+  </View>
+</View>

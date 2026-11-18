@@ -1,0 +1,67 @@
+# ===== config หลักของ teenoi-data (main.py และ login.py อ่านไฟล์นี้) =====
+# path ทุกตัวเป็น relative จาก root ของ repo
+
+project:                       # ค่าทั่วไปของการรัน
+  seed: 42                     # seed ของ random ทำให้เวลารอแบบสุ่มซ้ำเดิมได้ทุกครั้ง
+  log_level: INFO              # ระดับ log: DEBUG | INFO | WARNING | ERROR
+
+steps:                         # เปิด/ปิดแต่ละขั้น (ทำตามลำดับ find_branches -> scrape -> clean)
+  find_branches: false         # true = หาลิงก์สาขาจากการค้นหาแทนการใส่ urls เอง
+  scrape: true                 # ดึงรีวิวจาก Google Maps ต่อท้าย scraper.output_file
+  clean: true                  # clean รีวิวแล้วเขียนไฟล์สำหรับ Label Studio
+
+browser:                       # ตั้งค่า Chrome ที่ Playwright เปิด
+  headless: true               # true = ไม่แสดงหน้าต่าง, false = เห็นหน้าต่าง (ใช้ตอน debug)
+  channel: chrome              # ต้องเป็น chrome ให้ตรงกับ browser ที่ใช้ล็อกอินใน login.py
+  profile_dir: chrome_profile  # โฟลเดอร์เก็บ session ที่ได้จาก login.py (ห้าม commit/แชร์)
+  locale: th-TH                # ภาษาของหน้าเว็บ ต้องเป็นไทย เพราะโค้ดหาปุ่มด้วยข้อความภาษาไทย
+  viewport: {width: 1280, height: 900}  # ขนาดหน้าต่าง browser (พิกเซล)
+
+branch_finder:                 # ใช้เมื่อ steps.find_branches = true
+  search_queries:              # ค้นแยกพื้นที่ เพราะผลค้นหาแต่ละครั้งจำกัดจำนวน
+    - "สุกี้ตี๋น้อย กรุงเทพ"      # คำค้นที่ 1
+    - "สุกี้ตี๋น้อย นนทบุรี"      # คำค้นที่ 2
+    - "สุกี้ตี๋น้อย ปทุมธานี"     # คำค้นที่ 3
+  name_must_contain: "ตี๋น้อย"   # เก็บเฉพาะร้านที่ชื่อมีคำนี้ (กันร้านอื่นที่โผล่ในผลค้นหา)
+  output_file: data/raw/branches.csv  # ไฟล์รายชื่อสาขาที่ค้นเจอ
+
+scraper:                       # ตั้งค่าการดึงรีวิว
+  urls:                        # ลิงก์สาขาที่จะดึง ใช้เมื่อ steps.find_branches = false
+    - "https://maps.app.goo.gl/jHDEMQdmhcPJoi8h6"  # สาขาที่ 1
+    - "https://maps.app.goo.gl/E1kAXkVGvkhXqqP48"  # สาขาที่ 2
+    - "https://maps.app.goo.gl/g1u9UdtVeLSAt2Ff6"  # สาขาที่ 3
+    - "https://maps.app.goo.gl/z96twgkFuZ51LdXMA"  # สาขาที่ 4
+    - "https://maps.app.goo.gl/m6R5hz2hw553BCU76"  # สาขาที่ 5
+    - "https://maps.app.goo.gl/N7JQsL5sBwkTdV6T6"  # สาขาที่ 6
+    - "https://maps.app.goo.gl/vQwtwzXzQGT1Lk4F9"  # สาขาที่ 7
+  urls_file: null              # ไฟล์ข้อความ บรรทัดละ 1 ลิงก์ (รวมกับ urls ด้านบน, null = ไม่ใช้)
+  max_reviews_per_place: 10000 # เพดานกันพลาดต่อสาขา นับเฉพาะรีวิวที่มีข้อความ (จำนวนที่ต้องการจริงตั้งที่ selection.per_branch)
+  priority_target: 600         # หยุดดึงสาขานั้นเมื่อได้รีวิวดาว <= selection.priority_max_rating ที่มีข้อความครบจำนวนนี้
+                               # ตั้งเผื่อจาก per_branch ไว้ให้ clean ตัด (null = ดึงจนสุดรายการ)
+  sort_by: newest              # ค่าเดียวหรือ list: newest | most_relevant | lowest_rating | highest_rating
+  max_idle_rounds: 8           # เลื่อนแล้วไม่เจอรีวิวใหม่กี่รอบติดถือว่าสุดรายการ
+  delay:                       # เวลารอ (วินาที) สุ่มระหว่าง min-max
+    scroll_min: 1.2            # เวลารอสูงสุดหลังเลื่อน (สุ่มระหว่าง min-max) ถ้ารีวิวชุดใหม่โหลดเสร็จก่อนจะไปต่อทันที
+    scroll_max: 2.5            # ขอบบนของเวลารอหลังเลื่อน
+    between_places_min: 4      # พักขั้นต่ำก่อนเปิดสาขาถัดไป
+    between_places_max: 8      # พักสูงสุดก่อนเปิดสาขาถัดไป
+  output_file: data/raw/reviews_raw.csv  # ไฟล์รีวิวดิบรวมทุกสาขา (ต่อท้ายทุกรอบ ไม่ดึงซ้ำ)
+
+cleaning:                      # ตั้งค่าการ clean (ทำตามลำดับด้านล่าง)
+  input_file: data/raw/reviews_raw.csv   # ไฟล์รีวิวดิบ ใช้ตอน steps.scrape = false
+  remove_google_translation: true  # ตัดคำแปลอัตโนมัติของ Google เก็บแค่ข้อความต้นฉบับ
+  remove_urls: true            # ลบลิงก์ http(s)://... และ www....
+  remove_html: true            # ลบ tag HTML เช่น <b>
+  normalize_thai: true         # จัดสระ/วรรณยุกต์ไทยด้วย pythainlp.util.normalize
+  reduce_repeated_chars: 2     # ตัวอักษรซ้ำติดกันเกินนี้ลดเหลือเท่านี้ เช่น "มากกกก" -> "มากก" (ไม่แตะตัวเลข, 0 = ไม่ลด)
+  keep_emoji: true             # true = เก็บ emoji (บอกความรู้สึกได้), false = ลบ
+  min_length: 3                # ข้อความสั้นกว่านี้ (ตัวอักษร) ตัดทิ้ง รวมรีวิวที่ให้แต่ดาว
+  drop_duplicates: true        # ตัดข้อความที่ซ้ำกันเป๊ะ เก็บแถวแรก
+  languages: [th, en]          # เก็บเฉพาะภาษาเหล่านี้ ([] = ไม่กรองภาษา)
+  output:                      # ไฟล์ผลลัพธ์
+    file: data/clean/reviews_clean.csv            # review_id, review -> Label Studio
+    full_file: data/clean/reviews_clean_full.csv  # + branch_id, branch, rating, date_text, ...
+
+selection:                     # คัดรีวิวต่อสาขาหลัง clean (ไฟล์ raw ยังเก็บครบทุกรีวิวที่ดึงได้)
+  per_branch: 500              # จำนวนรีวิวต่อสาขาในไฟล์ clean (null = ไม่คัด เอาทั้งหมด)
+  priority_max_rating: 3       # ดาว <= ค่านี้เก็บก่อน ที่เหลือเติมด้วยดาวสูงกว่า แต่ละดาวเท่า ๆ กัน (ใหม่สุดก่อน)

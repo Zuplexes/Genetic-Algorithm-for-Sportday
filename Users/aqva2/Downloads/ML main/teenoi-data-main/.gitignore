@@ -1,0 +1,15 @@
+# session Google ที่ล็อกอินไว้ (มี cookie บัญชี ห้าม commit เด็ดขาด)
+gmaps_profile/
+chrome_profile/
+# รีวิวที่ดึงจาก Google Maps ไม่ขึ้น repo (repo เป็น public) สร้างใหม่ได้ด้วย python main.py
+data/
+# ไฟล์ที่สร้างขึ้นใหม่ได้ทุกรอบ (configs/ ตั้งใจ commit ขึ้นไปด้วย)
+models/
+logs/
+reports/
+# ไฟล์ที่ Python/pip สร้างเอง
+__pycache__/
+*.egg-info/
+# virtual environment
+.venv/
+.venv-*/

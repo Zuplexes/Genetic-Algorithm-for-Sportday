@@ -1,0 +1,5 @@
+# dependency ชุดเดียวกับ [project].dependencies ใน pyproject.toml (แนะนำติดตั้งด้วย pip install -e . แทน)
+playwright  # ควบคุม Chrome เพื่อดึงรีวิว (ต้องรัน playwright install chromium เพิ่ม)
+pandas      # อ่าน/เขียน CSV และจัดการตาราง
+pyyaml      # อ่านไฟล์ config .yml
+pythainlp   # normalize ข้อความภาษาไทย
